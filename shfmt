@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Applies uniform indentation in shell scripts. Uses Vim's indenter and updates
+# files in-place.
+# Usage:
+#   ./shfmt <file> [<file> ...]
+
+# Run Vim in "Ex improved" mode with `-E`. That makes things faster by not
+# loading .vimrc and also lets us use `-s` to avoid messages on stdout.
+vim -Es - -- "$@" <<'EOF'
+  " Load indent files
+  filetype indent on
+
+  " Indent shell scripts with two spaces
+  autocmd FileType sh setlocal expandtab shiftwidth=2
+
+  " For each file in the arglist:
+  "   1. Set the filetype to shell (`sh`)
+  "   2. Run the normal-mode command `gg=G`, which:
+  "      a. goes to the first line (`gg`)
+  "      b. reindents text (`=`) starting at the current line and continuing
+  "         through the last line (`G`)
+  "      We have to use `execute` to indirect `normal` because `normal` on its
+  "      own will continue reading and will consume the pipe and subsequent
+  "      commands.
+  "   3. Saves the file if it was changed (`update`)
+  argdo set filetype=sh | execute 'normal gg=G' | update
+EOF
